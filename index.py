@@ -285,21 +285,23 @@ def extract_products(json_data):
         widgets = swiggy_data.get('widgets', [])
         for widget in widgets:
             if widget.get('type') == 'PRODUCT_LIST':
-                items = widget.get('data', {}).get('data', [])
-                for item in items:
-                    name = item.get('display_name', '')
-                    variations = item.get('variations', [])
-                    if variations:
-                        variation = variations[0]  # Assuming first variation
-                        images = variation.get('images', [])
-                        image = images[0] if images else ''
-                        price_info = variation.get('price', {})
-                        price = price_info.get('offer_price', price_info.get('mrp', 0))
-                        swiggy_products[name] = {
-                            'name': name,
-                            'image': image,
-                            'price': price
-                        }
+                data = widget.get('data', {})
+                items = data.get('data', [])
+                if items and isinstance(items, list):
+                    for item in items:
+                        name = item.get('display_name', '')
+                        variations = item.get('variations', [])
+                        if variations:
+                            variation = variations[0]  # Assuming first variation
+                            images = variation.get('images', [])
+                            image = images[0] if images else ''
+                            price_info = variation.get('price', {})
+                            price = price_info.get('offer_price', price_info.get('mrp', 0))
+                            swiggy_products[name] = {
+                                'name': name,
+                                'image': image,
+                                'price': price
+                            }
     
     # Extract ZeptoNow products
     if 'zeptonow' in json_data:
@@ -399,27 +401,39 @@ def extract_zeptonow_products(data):
     """Extract product details from Zeptonow."""
     products = []
     if "zeptonow" in data:
-        for layout in data["zeptonow"].get("layout", []):
-            items = layout.get("data", {}).get("resolver", {}).get("data", {}).get("items", [])
-            for item in items:
-                product_response = item.get("productResponse", {})
-                product_info = product_response.get("product", {})
-                product_variant = product_response.get("productVariant", {})
-                products.append({
-                    "platform": "Zeptonow",
-                    "product_id": product_variant.get("id"),
-                    "name": product_info.get("name"),
-                    "brand": product_info.get("brand"),
-                    "price": product_response.get("price", {}).get("sp") / 100,
-                    "mrp": product_response.get("price", {}).get("mrp") / 100,
-                    "inventory": product_response.get("availableQuantity"),
-                    "quantity": product_variant.get("quantity"),
-                    "unit": product_variant.get("formattedPacksize"),
-                    "image_urls": [img.get("path") for img in product_variant.get("images", [])],
-                    "description": " ".join(product_info.get("description", [])),
-                    "searchKeywords": product_info.get("searchKeywords", []),
-                })
+        for layout in data.get("zeptonow", {}).get("layout", []):
+            resolver_data = layout.get("data", {}).get("resolver", {}).get("data", {})
+            items = resolver_data.get("items", [])
+            if items and isinstance(items, list): 
+                for item in items:
+                    product_response = item.get("productResponse", {})
+                    product_info = product_response.get("product", {})
+                    product_variant = product_response.get("productVariant", {})
+                    
+                    price_info = product_response.get("price", {})
+                    price = price_info.get("sp", 0) / 100
+                    mrp = price_info.get("mrp", 0) / 100
+                    images = product_variant.get("images", [])
+                    image_urls = [img.get("path") for img in images if isinstance(img, dict)]
+                    
+                    products.append({
+                        "platform": "Zeptonow",
+                        "product_id": product_variant.get("id"),
+                        "name": product_info.get("name", ""),
+                        "brand": product_info.get("brand", ""),
+                        "price": price,
+                        "mrp": mrp,
+                        "inventory": product_response.get("availableQuantity", 0),
+                        "quantity": product_variant.get("quantity", 0),
+                        "unit": product_variant.get("formattedPacksize", ""),
+                        "image_urls": image_urls,
+                        "description": " ".join(product_info.get("description", [])) if isinstance(product_info.get("description", []), list) else "",
+                        "searchKeywords": product_info.get("searchKeywords", []),
+                    })
+            else:
+                print(f"Unexpected 'items' structure in resolver data: {resolver_data}")
     return products
+
 
 def parse_unit(unit):
     if not unit or not isinstance(unit, str):
