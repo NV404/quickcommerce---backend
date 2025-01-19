@@ -221,7 +221,7 @@ def execute_curl_command(curl_command):
 def blinkit_search(query, latitude, longitude):
     # Replace placeholders in the curl command
     curl_command = f"""
-    curl 'https://blinkit.com/v1/layout/search?q={query}&search_type=type_to_search' \
+    curl --http2 'https://blinkit.com/v1/layout/search?q={query}&search_type=type_to_search' \
   -H 'accept: */*' \
   -H 'accept-language: en-US,en;q=0.9' \
   -H 'access_token: null' \
