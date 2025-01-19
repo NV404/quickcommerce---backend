@@ -545,6 +545,8 @@ def search():
     except Exception as e:
         blinkit_data = {'error': str(e)}
 
+    print(blinkit_data, "blinkit_data")
+
     data = {
         'swiggy': swiggy_data,
         'zeptonow': zeptonow_data,
@@ -554,6 +556,8 @@ def search():
     blinkit_products = extract_blinkit_products(data)
     swiggy_products = extract_swiggy_products(data)
     zeptonow_products = extract_zeptonow_products(data)
+
+    print(blinkit_products, "blinkit_products")
 
     # Combine all products
     all_products = blinkit_products + swiggy_products + zeptonow_products
