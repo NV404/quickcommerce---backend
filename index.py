@@ -247,6 +247,7 @@ def blinkit_search(query, latitude, longitude):
   -H 'session_uuid: 16619e37-13b6-4a5f-b33f-f2fea141b5e9' \
   -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36' \
   -H 'web_app_version: 1008010016' \
+  -H 'Connection: keep-alive' \
   --data-raw ''
 
     """
